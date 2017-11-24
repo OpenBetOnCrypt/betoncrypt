@@ -84,13 +84,6 @@ contract CrowdsalePre is Ownable {
       softcap = _softcap.mul(1000000000000000000);      
     }
 
-    /** 
-      * 1. 6 дней - 45%
-      * 2. 6 дней - 37%
-      * 3. 6 дней - 25%
-      * 4. 6 дней - 14%
-      * 5. 8 дней - NOT
-    **/
     function changeBonus(uint _first, uint _second,  uint _third, uint _fourth, uint _fifth) onlyOwner {
       first  = _first;
       second = _second;
