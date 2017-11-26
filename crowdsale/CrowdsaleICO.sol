@@ -16,7 +16,7 @@ contract CrowdsaleICO is Ownable {
     
     uint public period;
 
-    uint public hardcapethers;
+    uint public hardcap;
 
     uint public rateboc;
 
@@ -42,50 +42,27 @@ contract CrowdsaleICO is Ownable {
     event RefundsEnabled();
     event Refunded(address indexed beneficiary, uint256 weiAmount);  
 
-
     function CrowdsaleICO(address _tokencoin) {
         token = BetOnCryptToken(_tokencoin);
         is_finishmining = false;
         state = State.Active;
-    }
+    } 
 
- 
-
-    function changeMultisig(address _msig) onlyOwner {
-      multisig = _msig; 
-      restricted = multisig;    
-    }
-
-    function changeRestricted(address _restricted) onlyOwner {
-      restricted = _restricted;      
-    }
-
-    function changeStart(uint _start) onlyOwner {
+    function setParams(address _multisig, address _restricted, uint _period, uint _start, uint _rateboc, uint _minboc, uint _softcap, uint _hardcap, uint _restrictedPercent, uint _first, uint _second,  uint _third, uint _fourth, uint _fifth) onlyOwner {
+      multisig = _multisig; 
+      restricted = _restricted;    
       start = _start;      
-    }
-
-    function changeMinboc(uint _minboc) onlyOwner {
-      minboc = _minboc;      
-    }
-
-    function changePeriod(uint _period) onlyOwner {
       period = _period;      
-    }
-
-    function changeRateboc(uint _rateboc) onlyOwner {
+      minboc = _minboc.mul(1000000000000000000);      
       rateboc = _rateboc.mul(1000000000000000000);      
-    }
-
-    function changeHardcapethers(uint _hardcapethers) onlyOwner {
-      hardcapethers = _hardcapethers.mul(1000000000000000000);    
-      softcap = hardcapethers; 
-    }
-
-    function changeSoftcap(uint _softcap) onlyOwner {
       softcap = _softcap.mul(1000000000000000000);      
-    }
-
-    function changeBonus(uint _first, uint _second,  uint _third, uint _fourth, uint _fifth) onlyOwner {
+      hardcap = _hardcap.mul(1000000000000000000);
+      if (_restrictedPercent > 0 && _restrictedPercent < 50){
+        restrictedPercent = _restrictedPercent;      
+      } 
+      else{
+        restrictedPercent = 40;
+      }
       first  = _first;
       second = _second;
       third  = _third; 
@@ -93,22 +70,13 @@ contract CrowdsaleICO is Ownable {
       fifth  = _fifth;
     }
 
-    function changeRestrictedPercent(uint _restrictedPercent) onlyOwner {
-      if (_restrictedPercent > 0 && _restrictedPercent < 50){
-        restrictedPercent = _restrictedPercent;      
-      } 
-      else{
-        restrictedPercent = 40;
-      }
-    } 
-
     modifier saleIsOn() {
     	require((now > start) && (now < (start + period * 1 days)));
     	_;
     }
 
-    modifier isUnderHardcapethers() {
-        require(multisig.balance <= hardcapethers);
+    modifier isUnderHardcap() {
+        require(multisig.balance <= hardcap);
         _;
     }
 
@@ -167,7 +135,7 @@ contract CrowdsaleICO is Ownable {
     }
 
 
-    function createTokens() isUnderHardcapethers saleIsOn payable {
+    function createTokens() isUnderHardcap saleIsOn payable {
         require(msg.sender != address(0));
         require(state == State.Active);
         uint tokens = rateboc.mul(msg.value).div(1 ether);
